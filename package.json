@@ -1,0 +1,13 @@
+{
+  "name": "twitchstreamclients-v2",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "scripts": {
+    "start": "http-server ./src -c-1 -p 8083"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
