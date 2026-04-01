@@ -170,7 +170,7 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-500 mb-3 tracking-widest">Video Qualität</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <label class="flex flex-col items-center justify-center cursor-pointer bg-dark-900 p-3 rounded-xl border border-dark-600 hover:border-twitch transition-colors peer-checked:bg-twitch">
+                            <label class="flex flex-col items-center justify-center cursor-pointer bg-dark-900 p-3 rounded-xl border border-dark-600 hover:border-twitch transition-colors">
                                 <input type="radio" name="quality" value="auto" class="hidden peer">
                                 <span class="text-sm font-semibold text-gray-300 peer-checked:text-twitch">Auto</span>
                             </label>
@@ -248,7 +248,13 @@
             get showChat() { return localStorage.getItem('showChat_v2') === 'true'; },
             set showChat(val) { localStorage.setItem('showChat_v2', val); },
             
-            get statistics() { return JSON.parse(localStorage.getItem('stats_v2') || '[]'); },
+            get statistics() {
+                try {
+                    return JSON.parse(localStorage.getItem('stats_v2') || '[]');
+                } catch (e) {
+                    return [];
+                }
+            },
             set statistics(val) { localStorage.setItem('stats_v2', JSON.stringify(val)); }
         };
 
@@ -256,9 +262,36 @@
         if (localStorage.getItem('streams') && !localStorage.getItem('streams_v2')) {
             try {
                 state.streams = JSON.parse(localStorage.getItem('streams') || '[]');
-                state.quality = localStorage.getItem('streams_qualies') || 'auto';
+                state.quality = localStorage.getItem('streams_qualities') || localStorage.getItem('streams_qualies') || 'auto';
             } catch(e) { }
         }
+
+        // ==========================================
+        // 1.5 INPUT/OUTPUT SAFETY HELPERS
+        // ==========================================
+        const helpers = {
+            escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            },
+            escapeAttr(value) {
+                return this.escapeHtml(value);
+            },
+            normalizeChannelName(value) {
+                return String(value)
+                    .trim()
+                    .toLowerCase()
+                    .replace(/,/g, '');
+            },
+            isValidChannelName(value) {
+                // Twitch Login-Namen bestehen aus a-z, 0-9, _ (max. 25 Zeichen)
+                return /^[a-zäöü0-9_]{1,25}$/.test(String(value));
+            }
+        };
 
         // ==========================================
         // 2. CORE LOGIC
@@ -340,7 +373,8 @@
                         el.parentElement.classList.remove('border-twitch', 'bg-dark-700');
                     }
                     
-                    el.addEventListener('change', (e) => {
+                    // Wichtig: kein addEventListener hier, sonst duplizieren sich Handler beim erneuten Öffnen des Menüs.
+                    el.onchange = (e) => {
                         document.querySelectorAll(`input[name="quality"]`).forEach(radio => {
                             radio.nextElementSibling.classList.remove('text-twitch');
                             radio.parentElement.classList.remove('border-twitch', 'bg-dark-700');
@@ -349,7 +383,7 @@
                         e.target.parentElement.classList.add('border-twitch', 'bg-dark-700');
                         state.quality = e.target.value;
                         hasChanges = true;
-                    });
+                    };
                 });
 
                 const chatToggle = document.getElementById('chat-toggle');
@@ -364,7 +398,6 @@
                 const container = document.getElementById('active-list');
                 const badge = document.getElementById('stream-count-badge');
                 const streams = state.streams;
-                const stats = state.statistics;
 
                 badge.innerText = `${streams.length} Stream${streams.length !== 1 ? 's' : ''}`;
 
@@ -377,6 +410,7 @@
                 }
 
                 container.innerHTML = streams.map((s, i) => {
+                    const safeName = helpers.escapeHtml(s);
                     return `
                         <div class="flex items-center gap-3 bg-dark-900 p-3 rounded-xl border border-dark-600 group hover:border-dark-600 transition-all">
                             <div class="flex flex-col gap-1 text-gray-500 hover:text-white">
@@ -384,7 +418,7 @@
                                 <button onclick="actions.moveStream(${i}, 1)" class="${i===streams.length-1 ? 'invisible':''} hover:text-twitch" title="Runter"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
                             </div>
                             <div class="w-8 h-8 bg-dark-700 rounded-full flex items-center justify-center font-bold text-xs text-twitch">${i+1}</div>
-                            <span class="flex-1 font-bold text-white text-lg truncate">${s}</span>
+                            <span class="flex-1 font-bold text-white text-lg truncate">${safeName}</span>
                             <button onclick="actions.removeStream(${i})" title="Entfernen" class="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -396,7 +430,7 @@
             renderDatalist() {
                 const dl = document.getElementById('history-datalist');
                 const sortedStats = [...state.statistics].sort((a, b) => b.value - a.value).slice(0, 10);
-                dl.innerHTML = sortedStats.map(s => `<option value="${s.name}">`).join('');
+                dl.innerHTML = sortedStats.map(s => `<option value="${helpers.escapeAttr(s.name)}">`).join('');
             },
 
             showToast(msg, type = 'success') {
@@ -481,9 +515,13 @@
                 if (event) event.preventDefault(); 
                 
                 const input = document.getElementById('stream-input');
-                const name = String(input.value).trim().toLowerCase().replace(/,/g, '');
+                const name = helpers.normalizeChannelName(input.value);
                 
                 if (!name || name === '[object object]') return;
+                if (!helpers.isValidChannelName(name)) {
+                    ui.showToast('Ungültiger Kanalname. Erlaubt: a-z, äöü, 0-9, _ (max. 25 Zeichen).', 'error');
+                    return;
+                }
 
                 const current = state.streams;
                 if (!current.includes(name)) {
@@ -493,9 +531,9 @@
                     input.value = '';
                     ui.renderActiveList();
                     hasChanges = true;
-                    ui.showToast(`<b>${name}</b> hinzugefügt!`);
+                    ui.showToast(`<b>${helpers.escapeHtml(name)}</b> hinzugefügt!`);
                 } else {
-                    ui.showToast(`<b>${name}</b> ist bereits aktiv.`, 'error');
+                    ui.showToast(`<b>${helpers.escapeHtml(name)}</b> ist bereits aktiv.`, 'error');
                 }
             },
 
@@ -506,7 +544,7 @@
                 state.streams = current;
                 ui.renderActiveList();
                 hasChanges = true;
-                ui.showToast(`<b>${name}</b> entfernt.`);
+                ui.showToast(`<b>${helpers.escapeHtml(name)}</b> entfernt.`);
             },
 
             moveStream(index, direction) {

@@ -1,9 +1,10 @@
-const CACHE_NAME = 'twitch-viewer-v4-separated';
+const CACHE_NAME = 'twitch-viewer-v5-separated';
 
 const CACHE_URLS = [
   './',
   'index.html',
-  'manifest.json'
+  'manifest.json',
+  'service-worker.js'
 ];
 
 self.addEventListener('install', event => {
