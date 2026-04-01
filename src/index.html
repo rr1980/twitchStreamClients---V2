@@ -5,43 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Twitch Multi-Viewer Ultimate</title>
     
-    <!-- Tailwind CSS für das Pro-UI -->
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#9146FF">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Twitch Embed API -->
     <script src="https://embed.twitch.tv/embed/v1.js"></script>
     
-    <!-- Tailwind Config für Custom Colors & Animations -->
+    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        twitch: {
-                            DEFAULT: '#9146FF',
-                            dark: '#772CE8',
-                            darker: '#5C16C5'
-                        },
-                        dark: {
-                            900: '#0e0e10', // Twitch Background
-                            800: '#18181b', // Modal Background
-                            700: '#1f1f23', // Element Background
-                            600: '#303033'  // Border Color
-                        }
+                        twitch: { DEFAULT: '#9146FF', dark: '#772CE8', darker: '#5C16C5' },
+                        dark: { 900: '#0e0e10', 800: '#18181b', 700: '#1f1f23', 600: '#303033' }
                     },
                     animation: {
                         'slide-up': 'slideUp 0.3s ease-out',
                         'fade-in': 'fadeIn 0.2s ease-out',
                     },
                     keyframes: {
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        }
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
                     }
                 }
             }
@@ -53,12 +44,11 @@
             background-color: #0e0e10;
             color: #efeff1;
             margin: 0;
-            overflow: hidden; /* Verhindert Scrollbalken auf der Hauptebene */
+            overflow: hidden;
             height: 100vh;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        /* Dynamisches Grid */
         #stream-container {
             display: grid;
             gap: 2px;
@@ -75,7 +65,6 @@
             position: relative;
         }
 
-        /* Menu Trigger Button */
         #menu-trigger {
             position: absolute;
             top: 20px;
@@ -102,13 +91,11 @@
             transform: scale(1.05);
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #303033; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #9146FF; }
 
-        /* Toast Container */
         #toast-container {
             position: fixed;
             bottom: 20px;
@@ -122,7 +109,7 @@
 </head>
 <body>
 
-    <!-- Floating Action Button für das Menü -->
+    <!-- Menu Button -->
     <button id="menu-trigger" onclick="ui.toggleMenu(true)" title="Menü (Hotkey: M)">
         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -130,14 +117,13 @@
         </svg>
     </button>
 
-    <!-- Haupt-Stream-Bereich -->
+    <!-- Main Stream Container -->
     <main id="stream-container"></main>
 
-    <!-- Modal Menü -->
+    <!-- Modal Menu -->
     <div id="settings-menu" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden flex-col items-center justify-center p-4 animate-fade-in">
         <div class="bg-dark-800 border border-dark-600 w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col h-[85vh] animate-slide-up">
             
-            <!-- Modal Header -->
             <div class="p-6 border-b border-dark-600 flex justify-between items-center bg-dark-700 rounded-t-2xl">
                 <div class="flex items-center gap-3">
                     <div class="bg-twitch p-2 rounded-lg">
@@ -148,46 +134,39 @@
                         <span class="text-xs text-twitch font-semibold uppercase tracking-wider">Ultimate Edition</span>
                     </div>
                 </div>
-                <button onclick="ui.toggleMenu(false)" class="text-gray-400 hover:text-white hover:bg-dark-600 p-2 rounded-xl transition-all" title="Menü">
+                <button onclick="ui.toggleMenu(false)" class="text-gray-400 hover:text-white hover:bg-dark-600 p-2 rounded-xl transition-all" title="Schließen (Esc)">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <!-- Modal Body (2 Columns) -->
             <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
                 
-                <!-- Left Col: Manage Streams -->
+                <!-- Left Col -->
                 <div class="flex-1 p-6 border-r border-dark-600 flex flex-col gap-6 overflow-y-auto">
-                    
-                    <!-- Hinzufügen -->
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-500 mb-2 tracking-widest">Kanal hinzufügen</label>
-                        <form onsubmit="event.preventDefault(); actions.addStream();" class="flex gap-2 relative">
+                        <!-- Formular sauber an Event-Handler gebunden -->
+                        <form onsubmit="actions.addStream(event)" class="flex gap-2 relative">
                             <input type="text" id="stream-input" list="history-datalist" placeholder="z.B. rocketbeanstv" 
                                    class="flex-1 bg-dark-900 border border-dark-600 rounded-xl px-4 py-3 focus:border-twitch focus:ring-1 focus:ring-twitch focus:outline-none transition-all text-white placeholder-gray-600">
                             <datalist id="history-datalist"></datalist>
-                            <button type="submit" class="bg-twitch hover:bg-twitch-dark text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-twitch/20" title="Hinzufügen">
+                            <button type="submit" class="bg-twitch hover:bg-twitch-dark text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-twitch/20" title="Add">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                             </button>
                         </form>
                     </div>
 
-                    <!-- Aktive Streams -->
                     <div class="flex-1 flex flex-col min-h-0">
                         <div class="flex justify-between items-center mb-2">
                             <label class="text-xs font-bold uppercase text-gray-500 tracking-widest">Aktuelles Lineup</label>
                             <span id="stream-count-badge" class="text-xs bg-dark-600 px-2 py-1 rounded text-gray-300">0 Streams</span>
                         </div>
-                        <div id="active-list" class="space-y-2 overflow-y-auto flex-1 pr-2">
-                            <!-- Wird dynamisch gefüllt -->
-                        </div>
+                        <div id="active-list" class="space-y-2 overflow-y-auto flex-1 pr-2"></div>
                     </div>
                 </div>
 
-                <!-- Right Col: Settings -->
+                <!-- Right Col -->
                 <div class="w-full md:w-80 p-6 flex flex-col gap-8 bg-dark-700/50 overflow-y-auto">
-                    
-                    <!-- Layout & Qualität -->
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-500 mb-3 tracking-widest">Video Qualität</label>
                         <div class="grid grid-cols-2 gap-2">
@@ -210,7 +189,6 @@
                         </div>
                     </div>
 
-                    <!-- Layout Options -->
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-500 mb-3 tracking-widest">Ansicht</label>
                         <label class="flex items-center justify-between cursor-pointer bg-dark-900 p-4 rounded-xl border border-dark-600 hover:border-twitch transition-colors">
@@ -223,9 +201,9 @@
                     </div>
 
                     <div class="mt-auto pt-6">
-                        <button onclick="actions.applyAndReload()" class="w-full bg-white text-black hover:bg-gray-200 p-4 rounded-xl font-bold transition-all shadow-xl flex justify-center items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            Anwenden & Neu laden
+                        <button onclick="actions.applyChanges()" class="w-full bg-white text-black hover:bg-gray-200 p-4 rounded-xl font-bold transition-all shadow-xl flex justify-center items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Anwenden & Schließen
                         </button>
                     </div>
                 </div>
@@ -238,11 +216,31 @@
 
     <script>
         // ==========================================
-        // 1. STATE MANAGEMENT (Lokaler Speicher)
+        // 1. STATE MANAGEMENT (Mit Auto-Fixer)
         // ==========================================
         const state = {
-            get streams() { return JSON.parse(localStorage.getItem('streams_v2') || '[]'); },
-            set streams(val) { localStorage.setItem('streams_v2', JSON.stringify(val.filter(s => s.trim().length > 0))); },
+            get streams() { 
+                try {
+                    const raw = localStorage.getItem('streams_v2') || '[]';
+                    let parsed = JSON.parse(raw);
+                    
+                    // AUTO-FIX: [object Object] aus alten Caches entfernen
+                    parsed = parsed.map(item => {
+                        if (typeof item === 'object' && item !== null) {
+                            return item.name || item.id || '';
+                        }
+                        return String(item);
+                    });
+                    
+                    return parsed.filter(s => s.trim().length > 0 && s !== '[object Object]');
+                } catch(e) {
+                    return [];
+                }
+            },
+            set streams(val) { 
+                const cleanArray = val.filter(s => typeof s === 'string' && s.trim().length > 0);
+                localStorage.setItem('streams_v2', JSON.stringify(cleanArray)); 
+            },
             
             get quality() { return localStorage.getItem('quality_v2') || 'auto'; },
             set quality(val) { localStorage.setItem('quality_v2', val); },
@@ -254,14 +252,16 @@
             set statistics(val) { localStorage.setItem('stats_v2', JSON.stringify(val)); }
         };
 
-        // Migration alter Daten, falls vorhanden
+        // Migration alter Daten
         if (localStorage.getItem('streams') && !localStorage.getItem('streams_v2')) {
-            state.streams = JSON.parse(localStorage.getItem('streams') || '[]');
-            state.quality = localStorage.getItem('streams_qualies') || 'auto';
+            try {
+                state.streams = JSON.parse(localStorage.getItem('streams') || '[]');
+                state.quality = localStorage.getItem('streams_qualies') || 'auto';
+            } catch(e) { }
         }
 
         // ==========================================
-        // 2. CORE LOGIC (Berechnungen)
+        // 2. CORE LOGIC
         // ==========================================
         const logic = {
             updateStatistic(channelName) {
@@ -272,22 +272,14 @@
                 state.statistics = stats;
             },
             
-            // SMARTER GRID ALGORITHMUS: Berechnet die perfekte Matrix für 16:9 Streams
             calculateOptimalGrid(count, containerWidth, containerHeight) {
                 if (count === 0) return { cols: 1, rows: 1 };
-                
-                let bestCols = 1;
-                let bestRows = 1;
-                let maxArea = 0;
+                let bestCols = 1, bestRows = 1, maxArea = 0;
 
                 for (let cols = 1; cols <= count; cols++) {
                     const rows = Math.ceil(count / cols);
-                    
-                    // Verfügbarer Platz pro Zelle
                     const cellWidth = containerWidth / cols;
                     const cellHeight = containerHeight / rows;
-
-                    // Einpassen eines 16:9 (bzw. breiter bei Chat) Rechtecks
                     const targetRatio = state.showChat ? (21/9) : (16/9); 
                     
                     let vidWidth = cellWidth;
@@ -299,7 +291,6 @@
                     }
 
                     const totalArea = (vidWidth * vidHeight) * count;
-                    
                     if (totalArea > maxArea) {
                         maxArea = totalArea;
                         bestCols = cols;
@@ -313,7 +304,7 @@
         // ==========================================
         // 3. UI RENDERING & ACTIONS
         // ==========================================
-        let hasChanges = false; // Track changes to know if reload is needed
+        let hasChanges = false; 
 
         const ui = {
             toggleMenu(show) {
@@ -325,19 +316,19 @@
                     this.renderActiveList();
                     this.renderDatalist();
                     hasChanges = false;
-                    document.getElementById('stream-input').focus();
+                    setTimeout(() => document.getElementById('stream-input').focus(), 100);
                 } else {
                     menu.classList.add('hidden');
                     menu.classList.remove('flex');
                     if (hasChanges) {
-                        this.showToast('Änderungen gespeichert. Lade neu...', 'info');
-                        setTimeout(() => location.reload(), 1500);
+                        this.showToast('Setup wird dynamisch geladen...', 'info');
+                        this.initStreams(); 
+                        hasChanges = false;
                     }
                 }
             },
 
             syncSettingsToUI() {
-                // Radio Buttons für Qualität
                 document.querySelectorAll(`input[name="quality"]`).forEach(el => {
                     const span = el.nextElementSibling;
                     if(el.value === state.quality) {
@@ -349,7 +340,6 @@
                         el.parentElement.classList.remove('border-twitch', 'bg-dark-700');
                     }
                     
-                    // Listener fürs Styling updaten
                     el.addEventListener('change', (e) => {
                         document.querySelectorAll(`input[name="quality"]`).forEach(radio => {
                             radio.nextElementSibling.classList.remove('text-twitch');
@@ -362,7 +352,6 @@
                     });
                 });
 
-                // Chat Toggle
                 const chatToggle = document.getElementById('chat-toggle');
                 chatToggle.checked = state.showChat;
                 chatToggle.onchange = (e) => {
@@ -382,27 +371,21 @@
                 if (streams.length === 0) {
                     container.innerHTML = `
                         <div class="h-32 flex flex-col items-center justify-center text-gray-500 border border-dashed border-dark-600 rounded-xl">
-                            <svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             <p class="text-sm">Noch keine Streams aktiv.</p>
                         </div>`;
                     return;
                 }
 
                 container.innerHTML = streams.map((s, i) => {
-                    const count = stats.find(stat => stat.name === s)?.value || 0;
                     return `
                         <div class="flex items-center gap-3 bg-dark-900 p-3 rounded-xl border border-dark-600 group hover:border-dark-600 transition-all">
                             <div class="flex flex-col gap-1 text-gray-500 hover:text-white">
-                                <button onclick="actions.moveStream(${i}, -1)" title="Hoch" class="${i===0 ? 'invisible':''} hover:text-twitch"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></button>
-                                <button onclick="actions.moveStream(${i}, 1)" title="Runter" class="${i===streams.length-1 ? 'invisible':''} hover:text-twitch"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                                <button onclick="actions.moveStream(${i}, -1)" class="${i===0 ? 'invisible':''} hover:text-twitch" title="Hoch"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></button>
+                                <button onclick="actions.moveStream(${i}, 1)" class="${i===streams.length-1 ? 'invisible':''} hover:text-twitch" title="Runter"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
                             </div>
                             <div class="w-8 h-8 bg-dark-700 rounded-full flex items-center justify-center font-bold text-xs text-twitch">${i+1}</div>
                             <span class="flex-1 font-bold text-white text-lg truncate">${s}</span>
-                            <div class="text-right mr-2 hidden sm:block">
-                                <span class="text-xs text-gray-500 block uppercase tracking-widest">Aufrufe</span>
-                                <span class="text-sm font-semibold text-gray-300">${count}</span>
-                            </div>
-                            <button onclick="actions.removeStream(${i})" class="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
+                            <button onclick="actions.removeStream(${i})" title="Entfernen" class="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
@@ -412,7 +395,7 @@
 
             renderDatalist() {
                 const dl = document.getElementById('history-datalist');
-                const sortedStats = [...state.statistics].sort((a, b) => b.value - a.value).slice(0, 10); // Top 10
+                const sortedStats = [...state.statistics].sort((a, b) => b.value - a.value).slice(0, 10);
                 dl.innerHTML = sortedStats.map(s => `<option value="${s.name}">`).join('');
             },
 
@@ -422,19 +405,10 @@
                 const colors = type === 'success' ? 'bg-green-500/90' : (type === 'error' ? 'bg-red-500/90' : 'bg-twitch/90');
                 
                 toast.className = `${colors} text-white px-4 py-3 rounded-lg shadow-lg text-sm font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-10 opacity-0 backdrop-blur-sm`;
-                toast.innerHTML = `
-                    ${type === 'success' ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' : ''}
-                    ${msg}
-                `;
-                
+                toast.innerHTML = msg;
                 container.appendChild(toast);
                 
-                // Animate in
-                requestAnimationFrame(() => {
-                    toast.classList.remove('translate-y-10', 'opacity-0');
-                });
-
-                // Remove after 3s
+                requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
                 setTimeout(() => {
                     toast.classList.add('opacity-0');
                     setTimeout(() => toast.remove(), 300);
@@ -463,12 +437,8 @@
                     container.style.display = 'flex';
                     container.innerHTML = `
                         <div class="flex flex-col items-center justify-center w-full h-full space-y-6 animate-fade-in">
-                            <div class="bg-dark-800 p-8 rounded-full border border-dark-600 shadow-2xl">
-                                <svg class="w-24 h-24 text-dark-600" fill="currentColor" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
-                            </div>
                             <h1 class="text-3xl font-bold text-white tracking-tight">Dein Setup ist leer</h1>
-                            <p class="text-gray-400">Drücke <strong>M</strong> oder klicke den Button oben rechts, um Streams hinzuzufügen.</p>
-                            <button onclick="ui.toggleMenu(true)" class="bg-twitch hover:bg-twitch-dark text-white px-8 py-4 rounded-xl font-bold transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(145,70,255,0.4)]">
+                            <button onclick="ui.toggleMenu(true)" class="bg-twitch hover:bg-twitch-dark text-white px-8 py-4 rounded-xl font-bold transition-all transform hover:scale-105">
                                 Streams konfigurieren
                             </button>
                         </div>
@@ -481,7 +451,7 @@
 
                 streams.forEach((channel, i) => {
                     const wrapper = document.createElement('div');
-                    wrapper.className = 'twitch-embed-wrapper';
+                    wrapper.className = 'twitch-embed-wrapper animate-fade-in';
                     wrapper.id = `twitch-embed-${i}`;
                     container.appendChild(wrapper);
 
@@ -491,7 +461,7 @@
                         channel: channel,
                         layout: layout,
                         autoplay: true,
-                        muted: i !== 0, // Nur der erste Stream hat Ton an (QoL Feature)
+                        muted: i !== 0, 
                         parent: [window.location.hostname || 'localhost']
                     });
 
@@ -500,17 +470,20 @@
                         setTimeout(() => {
                             try { player.setQuality(quality); } 
                             catch(e) { console.warn("Quality Set Error:", e); }
-                        }, 1500); // Längeres Timeout für stabilere Initialisierung
+                        }, 1500);
                     });
                 });
             }
         };
 
         const actions = {
-            addStream() {
+            addStream(event) {
+                if (event) event.preventDefault(); 
+                
                 const input = document.getElementById('stream-input');
-                const name = input.value.trim().toLowerCase().replace(/,/g, '');
-                if (!name) return;
+                const name = String(input.value).trim().toLowerCase().replace(/,/g, '');
+                
+                if (!name || name === '[object object]') return;
 
                 const current = state.streams;
                 if (!current.includes(name)) {
@@ -522,7 +495,7 @@
                     hasChanges = true;
                     ui.showToast(`<b>${name}</b> hinzugefügt!`);
                 } else {
-                    ui.showToast(`<b>${name}</b> ist bereits in der Liste.`, 'error');
+                    ui.showToast(`<b>${name}</b> ist bereits aktiv.`, 'error');
                 }
             },
 
@@ -547,10 +520,8 @@
                 hasChanges = true;
             },
 
-            applyAndReload() {
-                hasChanges = false;
-                ui.showToast('Lade neues Setup...', 'info');
-                setTimeout(() => location.reload(), 500);
+            applyChanges() {
+                ui.toggleMenu(false); 
             }
         };
 
@@ -560,18 +531,13 @@
         window.onload = () => {
             ui.initStreams();
             
-            // Event Listeners
             window.addEventListener('resize', () => {
-                // Debounced Resize
                 clearTimeout(window.resizeTimer);
-                window.resizeTimer = setTimeout(() => {
-                    ui.updateGridStyles();
-                }, 200);
+                window.resizeTimer = setTimeout(() => ui.updateGridStyles(), 200);
             });
 
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') ui.toggleMenu(false);
-                // Hotkey 'm' für Menü (wenn man nicht gerade tippt)
                 if (e.key.toLowerCase() === 'm' && document.activeElement.tagName !== 'INPUT') {
                     const menu = document.getElementById('settings-menu');
                     ui.toggleMenu(menu.classList.contains('hidden'));
@@ -580,19 +546,14 @@
         };
 
         // ==========================================
-        // 5. IN-MEMORY SERVICE WORKER (PWA FEATURE)
+        // 5. SERVICE WORKER REGISTRATION (PWA)
         // ==========================================
-        // Dies erstellt einen Service Worker direkt aus dem JS, um der 1-File-Regel treu zu bleiben.
-        try {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => console.log('[ServiceWorker] Erfolgreich registriert mit Scope:', registration.scope))
-                    .catch(error => console.log('[ServiceWorker] Registrierung fehlgeschlagen:', error));
+                    .then(registration => console.log('[ServiceWorker] Registriert:', registration.scope))
+                    .catch(error => console.warn('[ServiceWorker] Fehler:', error));
             });
-        }
-        } catch(e) {
-            console.warn('Service Worker setup skipped.');
         }
     </script>
 </body>

@@ -1,33 +1,27 @@
-const CACHE_NAME = 'twitch-viewer-v2';
+const CACHE_NAME = 'twitch-viewer-v4-separated';
 
-// Da wir jetzt alles in einer Datei haben, müssen wir nur noch wenig cachen!
 const CACHE_URLS = [
   './',
-  'index.html'
+  'index.html',
+  'manifest.json'
 ];
 
-// 1. Install-Event: Cacht die Dateien beim ersten Laden
 self.addEventListener('install', event => {
-  console.log('[ServiceWorker] Installiert');
+  self.skipWaiting(); // Erzwingt sofortiges Update
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('[ServiceWorker] Caching App Shell');
       return cache.addAll(CACHE_URLS);
     })
   );
-  self.skipWaiting();
 });
 
-// 2. Activate-Event: Räumt alte Caches auf, falls wir den CACHE_NAME ändern
 self.addEventListener('activate', event => {
-  console.log('[ServiceWorker] Aktiviert');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[ServiceWorker] Lösche alten Cache:', cacheName);
-            return caches.delete(cacheName);
+            return caches.delete(cacheName); // Räumt alte Caches auf
           }
         })
       );
@@ -36,21 +30,24 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// 3. Fetch-Event: Fängt Netzwerkanfragen ab und liefert sie aus dem Cache
+// Stale-While-Revalidate Strategie
 self.addEventListener('fetch', event => {
-  // Ignoriere externe Anfragen (wie die Twitch-Embed-Skripte), cache nur unsere eigenen Dateien
-  if (!event.request.url.startsWith(self.location.origin)) {
+  if (!event.request.url.startsWith(self.location.origin) || event.request.method !== 'GET') {
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then(response => {
-      // Wenn im Cache gefunden, gib es aus dem Cache zurück
-      if (response) {
-        return response;
-      }
-      // Ansonsten hole es normal aus dem Netzwerk
-      return fetch(event.request);
+    caches.match(event.request).then(cachedResponse => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        // Cache im Hintergrund aktualisieren
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, networkResponse.clone());
+        });
+        return networkResponse;
+      });
+
+      // Liefere Cache wenn vorhanden, ansonsten warte aufs Netzwerk
+      return cachedResponse || fetchPromise;
     })
   );
 });
